@@ -8,7 +8,10 @@ import (
 
 func TestSetProperties(t *testing.T) {
 	instance := GetInstance()
-	SetProperties("Thermometer", "Temperature")
+	sensorName := "Thermometer"
+	measurementName := "Temperature"
+	SetProperties(Properties{SensorName: sensorName, MeasurementName: measurementName, FrequencyOfReading: 0, DesiredMean: 180, DesiredStdDev: 10})
+
 	if instance.Sensor.Name != "Thermometer" || instance.Sensor.Measurement.Name != "Temperature" {
 		t.Error("Expected Sensor: Thermometer, Measurement: Temperature, got ", instance.Sensor.Name, instance.Sensor.Measurement.Name)
 	}
@@ -16,7 +19,7 @@ func TestSetProperties(t *testing.T) {
 
 func TestSimulation(t *testing.T) {
 	GetInstance()
-	SetProperties("Thermometer", "Temperature")
+	SetProperties(Properties{SensorName: "Thermometer", MeasurementName: "Temperature", FrequencyOfReading: 2000, DesiredMean: 18, DesiredStdDev: 2})
 
 	simulationCount := 0
 	countSimulations := func(simulation *Simulation) {
