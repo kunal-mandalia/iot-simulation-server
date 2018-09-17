@@ -39,7 +39,8 @@ func startSimulationHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("measurement") != "" {
 			measurementName = r.URL.Query().Get("measurement")
 		}
-		simulator.SetProperties(sensorName, measurementName)
+
+		simulator.SetProperties(simulator.Properties{SensorName: sensorName, MeasurementName: measurementName, FrequencyOfReading: 0, DesiredMean: 180, DesiredStdDev: 10})
 		go simulator.Start(logValueChange)
 
 		message := "Started " + sensorName + " simulation for measurement " + measurementName
