@@ -4,8 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"./simulator"
+	"./timeseriesdb"
 )
 
 const defaultPort = "8080"
@@ -26,28 +29,52 @@ func startSimulationHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusLocked)
 		w.Write([]byte(formatMessage(message)))
 	} else {
-		sensorName := "Gyroscope"
-		measurementName := "Rotation"
-		logValueChange := func(simulation *simulator.Simulation) {
-			log.Print("Simulated value changed:")
-			log.Print(simulation)
-		}
+		simulationProperties := simulator.Properties{SensorName: "Gyroscope", MeasurementName: "Rotation", FrequencyOfReading: 0, DesiredMean: 180, DesiredStdDev: 10}
 
+		db := "simulation"
+		if r.URL.Query().Get("mode") == "test" {
+			db = "test_simulation"
+		}
 		if r.URL.Query().Get("sensor") != "" {
-			sensorName = r.URL.Query().Get("sensor")
+			simulationProperties.SensorName = r.URL.Query().Get("sensor")
 		}
 		if r.URL.Query().Get("measurement") != "" {
-			measurementName = r.URL.Query().Get("measurement")
+			simulationProperties.MeasurementName = r.URL.Query().Get("measurement")
+		}
+		if r.URL.Query().Get("frequency") != "" {
+			frequency, err := strconv.ParseInt(r.URL.Query().Get("frequency"), 10, 32)
+			if err != nil {
+				panic(err)
+			}
+			simulationProperties.FrequencyOfReading = time.Duration(frequency)
+		}
+		if r.URL.Query().Get("mean") != "" {
+			mean, err := strconv.ParseFloat(r.URL.Query().Get("mean"), 64)
+			if err != nil {
+				panic(err)
+			}
+			simulationProperties.DesiredMean = mean
+		}
+		if r.URL.Query().Get("stddev") != "" {
+			stddev, err := strconv.ParseFloat(r.URL.Query().Get("stddev"), 64)
+			if err != nil {
+				panic(err)
+			}
+			simulationProperties.DesiredStdDev = stddev
 		}
 
-		simulator.SetProperties(simulator.Properties{SensorName: sensorName, MeasurementName: measurementName, FrequencyOfReading: 0, DesiredMean: 180, DesiredStdDev: 10})
-		go simulator.Start(logValueChange)
+		simulator.SetProperties(simulationProperties)
+		writeToDb := func(simulation *simulator.Simulation) {
+			dp := timeseriesdb.WriteSingleDatapointRequest{Db: db, Measurement: simulation.Sensor.Name, Field: simulation.Sensor.Measurement.Name, Value: simulation.Sensor.Measurement.Value}
+			timeseriesdb.WriteSingleDatapoint(dp)
+		}
 
-		message := "Started " + sensorName + " simulation for measurement " + measurementName
+		go simulator.Start(writeToDb)
+
+		message := "Started " + simulationProperties.SensorName + " simulation for measurement " + simulationProperties.MeasurementName
 		log.Print(message)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(formatMessage(message)))
-
 	}
 }
 
@@ -58,7 +85,7 @@ func stopSimulationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(formatMessage(message)))
 }
 
-func statusHandler(w http.ResponseWriter, r *http.Request) {
+func simulationStatusHandler(w http.ResponseWriter, r *http.Request) {
 	simulation := simulator.GetInstance()
 	var message string
 
@@ -77,7 +104,22 @@ func main() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/start", startSimulationHandler)
 	http.HandleFunc("/stop", stopSimulationHandler)
-	http.HandleFunc("/status", statusHandler)
+	http.HandleFunc("/status", simulationStatusHandler)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+	log.Printf("Starting IoT simulation on port: " + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+// Main is a duplicate of main for running system tests
+func Main() {
+	simulator.GetInstance()
+	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/start", startSimulationHandler)
+	http.HandleFunc("/stop", stopSimulationHandler)
+	http.HandleFunc("/status", simulationStatusHandler)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort

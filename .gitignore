@@ -12,3 +12,7 @@
 *.out
 
 gomon_spawn
+
+# InfluxDB data, config
+data/
+Influxdb/
