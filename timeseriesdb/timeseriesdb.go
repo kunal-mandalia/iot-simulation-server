@@ -28,4 +28,9 @@ func WriteSingleDatapoint(req WriteSingleDatapointRequest) {
 	}
 }
 
-// TODO create simulation, test_simulation db if they don't exist
+// Initialise dbs
+func Initialise() {
+	// Create simulations db if it doesn't exist
+
+	// Create test_simulations db if it doesn't exist
+}

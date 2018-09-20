@@ -102,9 +102,11 @@ func simulationStatusHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	simulator.GetInstance()
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/status", simulationStatusHandler)
+	// TODO change simulation start/stop to respond to POST
+	// requests only
 	http.HandleFunc("/start", startSimulationHandler)
 	http.HandleFunc("/stop", stopSimulationHandler)
-	http.HandleFunc("/status", simulationStatusHandler)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
