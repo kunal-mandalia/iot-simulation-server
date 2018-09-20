@@ -26,6 +26,8 @@ func TestSimulationStatusHandler(t *testing.T) {
 
 func TestStartSimulationHandler(t *testing.T) {
 	// Start server and begin simulating
+	// Q: Can go routines be run for a particular lifespan e.g. 30seconds?
+	// as the thread will continue in the background after the function returns
 	go Main()
 	_, err := http.Get("http://localhost:8080/start?mode=test&freqency=1")
 	if err != nil {
@@ -38,7 +40,6 @@ func TestStartSimulationHandler(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	log.Print(string(body))
 	status := string(body)
 	if strings.Contains(status, "Simulation is not running") {
 		t.Error("Expected simulation to be running but got, ", status)
@@ -47,11 +48,9 @@ func TestStartSimulationHandler(t *testing.T) {
 	time.Sleep(10 * time.Second)
 
 	// Stop the simulation
-	resp, err = http.Get("http://localhost:8080/stop")
+	_, err = http.Get("http://localhost:8080/stop")
 	if err != nil {
 		t.Error("Error stopping simulation ", err)
 	}
-	log.Print(resp)
-
 	// TODO assert against count of data points between start and stop
 }
