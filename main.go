@@ -100,6 +100,7 @@ func simulationStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	timeseriesdb.Initialise()
 	simulator.GetInstance()
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/status", simulationStatusHandler)
@@ -117,15 +118,5 @@ func main() {
 
 // Main is a duplicate of main for running system tests
 func Main() {
-	simulator.GetInstance()
-	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/start", startSimulationHandler)
-	http.HandleFunc("/stop", stopSimulationHandler)
-	http.HandleFunc("/status", simulationStatusHandler)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-	log.Printf("Starting IoT simulation on port: " + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	main()
 }

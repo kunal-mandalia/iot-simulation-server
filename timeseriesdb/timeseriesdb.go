@@ -16,6 +16,21 @@ type WriteSingleDatapointRequest struct {
 	Value       float64
 }
 
+// Initialise dbs
+func Initialise() {
+	log.Print("Initialising dbs...")
+	// Create dbs for simulations if they don't already exist
+	dbs := []string{"simulation", "test_simulation"}
+	for _, db := range dbs {
+		url := "http://localhost:8086/query"
+		data := "q=CREATE DATABASE \"" + db + "\""
+		_, err := http.Post(url, "application/x-www-form-urlencoded", bytes.NewBufferString(data))
+		if err != nil {
+			log.Print(err)
+		}
+	}
+}
+
 // WriteSingleDatapoint to timeseries db
 func WriteSingleDatapoint(req WriteSingleDatapointRequest) {
 	url := "http://localhost:8086/write?db=" + req.Db + "&precision=s"
@@ -28,9 +43,8 @@ func WriteSingleDatapoint(req WriteSingleDatapointRequest) {
 	}
 }
 
-// Initialise dbs
-func Initialise() {
-	// Create simulations db if it doesn't exist
+// TODO implement so that simulation writes may be tested
+// GetRecordsBetween two timestamps
+// func GetRecordsBetween(t1 time.Time, t2 time.Time) {
 
-	// Create test_simulations db if it doesn't exist
-}
+// }
