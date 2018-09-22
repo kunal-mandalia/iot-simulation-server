@@ -43,8 +43,8 @@ func WriteSingleDatapoint(req WriteSingleDatapointRequest) {
 	}
 }
 
+// TODO implement so that simulation writes may be tested
 // GetRecordsBetween two timestamps
-func GetRecordsBetween(t1 time.Time, t2 time.Time) {
-	t := time.Now()
-	log.Print(t)
-}
+// func GetRecordsBetween(t1 time.Time, t2 time.Time) {
+
+// }
