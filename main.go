@@ -100,7 +100,7 @@ func simulationStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	timeseriesdb.Initialise()
+	go timeseriesdb.Initialise()
 	simulator.GetInstance()
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/status", simulationStatusHandler)
